@@ -24,7 +24,7 @@ network monitoring software
 - Core and Advanced Java
 - Communication, Decision Making, Soft Skills
 
-##components of project
+# components of project
 
 contains 2 packages 
 - api
@@ -51,10 +51,25 @@ and a GO Plugin .exe
 - nms
 
 
-# Devices which will monitor
-- Linux
+# Devices which will monitor with groups
+
+- Linux 
+  - Cpu
+  - Disk
+  - Memory
+  - Process
+  - System
+  
 - Windows
+  - Cpu
+  - Disk
+  - Memory
+  - Process
+  - System
+  
 - Network
+  - System
+  - Interfaces
 
 # Protocols 
 - SSH
