@@ -36,6 +36,9 @@ public class PollerEngine extends AbstractVerticle {
 
                                 if (data.getString(Constant.STATUS).equals(Constant.SUCCESS)) {
                                     statusCheck.put(pollingData.getInteger(Constant.MONITOR_ID), "up");
+                                    LOG.info("ping data for ->{}",
+                                            pollingData.getInteger(Constant.MONITOR_ID)+ "-"+
+                                            statusCheck.get(pollingData.getInteger(Constant.MONITOR_ID)));
                                 }
                             } else {
 

@@ -14,14 +14,10 @@ import org.slf4j.LoggerFactory;
 
 import java.util.Objects;
 
-import static java.lang.Math.max;
-
 public class Metric {
 
-    private final EventBus eventBus = Bootstrap.vertx.eventBus();
-
-
     private static final Logger LOG = LoggerFactory.getLogger(Metric.class.getName());
+    private final EventBus eventBus = Bootstrap.vertx.eventBus();
 
     public void init(Router router) {
 
@@ -199,31 +195,31 @@ public class Metric {
                         eventBus.<JsonObject>request(Constant.DATABASE_EVENTBUS_ADDRESS, new JsonObject()
                                 .put("query", futureCompleteHandler.result())
                                 .put(Constant.METHOD_TYPE, Constant.GET_DATA), eventBusHandler -> {
-                            try{
+                            try {
 
-                            if (eventBusHandler.succeeded()) {
+                                if (eventBusHandler.succeeded()) {
 
-                                var result = eventBusHandler.result().body()
-                                        .getJsonArray(Constant.DATA);
-                                if (!result.isEmpty()) {
+                                    var result = eventBusHandler.result().body()
+                                            .getJsonArray(Constant.DATA);
+                                    if (!result.isEmpty()) {
 
-                                    response(context, 200, new JsonObject()
-                                            .put(Constant.STATUS, Constant.SUCCESS)
-                                            .put(Constant.RESULT, result));
+                                        response(context, 200, new JsonObject()
+                                                .put(Constant.STATUS, Constant.SUCCESS)
+                                                .put(Constant.RESULT, result));
+                                    } else {
+
+                                        response(context, 200, new JsonObject()
+                                                .put(Constant.STATUS, Constant.FAIL)
+                                                .put(Constant.ERROR, "id not found in database"));
+
+                                    }
                                 } else {
 
-                                    response(context, 200, new JsonObject()
-                                            .put(Constant.STATUS, Constant.FAIL)
-                                            .put(Constant.ERROR, "id not found in database"));
+                                    response(context, 400, new JsonObject().put(Constant.STATUS, Constant.FAIL)
+                                            .put(Constant.ERROR, eventBusHandler.cause().getMessage()));
 
                                 }
-                            } else {
-
-                                response(context, 400, new JsonObject().put(Constant.STATUS, Constant.FAIL)
-                                        .put(Constant.ERROR, eventBusHandler.cause().getMessage()));
-
-                            }
-                        }catch (Exception exception){
+                            } catch (Exception exception) {
 
                                 response(context, 500, new JsonObject()
                                         .put(Constant.STATUS, Constant.FAIL)
@@ -416,7 +412,8 @@ public class Metric {
                                                 .put(Constant.STATUS, Constant.FAIL)
                                                 .put(Constant.ERROR, "time Required"));
 
-                                    } else if ((context.getBodyAsJson().getInteger("time") < 6 * 1000)
+                                    }
+                                    if ((context.getBodyAsJson().getInteger("time") < 6 * 1000)
                                             || (context.getBodyAsJson().getInteger("time") > 86400 * 1000)
                                             || context.getBodyAsJson().getInteger("time") % 1000 != 0) {
 

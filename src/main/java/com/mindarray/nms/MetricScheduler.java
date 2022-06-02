@@ -188,7 +188,7 @@ public class MetricScheduler extends AbstractVerticle {
 
                     } else {
 
-                        LOG.error("data is empty in metric");
+                        LOG.debug("data is empty in metric");
 
                     }
                 } else {

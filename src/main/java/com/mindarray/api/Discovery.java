@@ -317,30 +317,30 @@ public class Discovery {
 
             eventBus.<JsonObject>request(Constant.DATABASE_EVENTBUS_ADDRESS,
                     new JsonObject().put(Constant.QUERY, query)
-                    .put(Constant.METHOD_TYPE, Constant.GET_DATA)
-                    .put(Constant.REQUEST_POINT, Constant.DISCOVERY), eventBusHandler -> {
-                try {
-                    if (eventBusHandler.succeeded()) {
+                            .put(Constant.METHOD_TYPE, Constant.GET_DATA)
+                            .put(Constant.REQUEST_POINT, Constant.DISCOVERY), eventBusHandler -> {
+                        try {
+                            if (eventBusHandler.succeeded()) {
 
-                        var result = eventBusHandler.result().body().getValue(Constant.DATA);
+                                var result = eventBusHandler.result().body().getValue(Constant.DATA);
 
-                        response(context, 200, new JsonObject()
-                                .put(Constant.STATUS, Constant.SUCCESS)
-                                .put(Constant.RESULT, result));
+                                response(context, 200, new JsonObject()
+                                        .put(Constant.STATUS, Constant.SUCCESS)
+                                        .put(Constant.RESULT, result));
 
-                    } else {
+                            } else {
 
-                        response(context, 200, new JsonObject()
-                                .put(Constant.STATUS, Constant.FAIL)
-                                .put(Constant.ERROR, eventBusHandler.cause().getMessage()));
-                    }
-                } catch (Exception exception) {
+                                response(context, 200, new JsonObject()
+                                        .put(Constant.STATUS, Constant.FAIL)
+                                        .put(Constant.ERROR, eventBusHandler.cause().getMessage()));
+                            }
+                        } catch (Exception exception) {
 
-                    response(context, 500, new JsonObject().put(Constant.STATUS, Constant.FAIL)
-                            .put(Constant.ERROR, exception.getCause().getMessage()));
-                }
+                            response(context, 500, new JsonObject().put(Constant.STATUS, Constant.FAIL)
+                                    .put(Constant.ERROR, exception.getCause().getMessage()));
+                        }
 
-            });
+                    });
 
         } catch (Exception e) {
             response(context, 400, new JsonObject().put(Constant.MESSAGE, "wrong json format")
@@ -620,39 +620,60 @@ public class Discovery {
             errors.add("discovery.id is required");
 
         }
-
-        if (errors.isEmpty()) {
-
-            eventBus.request(Constant.DATABASE_EVENTBUS_ADDRESS, context.getBodyAsJson()
-                    .put(Constant.METHOD_TYPE, Constant.CHECK_DISCOVERY_UPDATES)
-                    .put(Constant.REQUEST_POINT, Constant.DISCOVERY), eventBusHandler -> {
-                try {
-
-                    if (eventBusHandler.succeeded()) {
-
-                        context.next();
-
-                    } else {
-
-                        response(context, 400, new JsonObject().put(Constant.STATUS, Constant.FAIL)
-                                .put(Constant.ERROR, eventBusHandler.cause().getMessage()));
-
-                    }
-                } catch (Exception exception) {
-
-                    response(context, 500, new JsonObject()
-                            .put(Constant.STATUS, Constant.FAIL)
-                            .put(Constant.ERROR, exception.getCause().getMessage()));
-
-                }
-            });
-
-        } else {
-
-            response(context, 400, new JsonObject().put(Constant.ERROR, errors)
-                    .put(Constant.STATUS, Constant.FAIL));
+        if (context.getBodyAsJson().containsKey(Constant.DISCOVERY_NAME)
+                && (!(context.getBodyAsJson().getValue(Constant.DISCOVERY_NAME) instanceof String)
+                || context.getBodyAsJson().getString(Constant.DISCOVERY_NAME).isEmpty())){
+            errors.add("discovery.name is required");
 
         }
+        if (context.getBodyAsJson().containsKey(Constant.IP)
+                &&( !(context.getBodyAsJson().getValue(Constant.IP) instanceof String)
+                || context.getBodyAsJson().getString(Constant.IP).isEmpty())){
+            errors.add("IP is required");
+        }
+        if (context.getBodyAsJson().containsKey(Constant.CREDENTIAL_PROFILE)
+                &&( !(context.getBodyAsJson().getValue(Constant.CREDENTIAL_PROFILE) instanceof Integer)
+                || context.getBodyAsJson().getString(Constant.CREDENTIAL_PROFILE).isEmpty())){
+            errors.add("credential.profile is required");
+        }
+        if (context.getBodyAsJson().containsKey(Constant.PORT)
+                &&( !(context.getBodyAsJson().getValue(Constant.PORT) instanceof Integer)
+                || context.getBodyAsJson().getString(Constant.PORT).isEmpty())){
+            errors.add("port is required");
+        }
+
+            if (errors.isEmpty()) {
+
+                eventBus.request(Constant.DATABASE_EVENTBUS_ADDRESS, context.getBodyAsJson()
+                        .put(Constant.METHOD_TYPE, Constant.CHECK_DISCOVERY_UPDATES)
+                        .put(Constant.REQUEST_POINT, Constant.DISCOVERY), eventBusHandler -> {
+                    try {
+
+                        if (eventBusHandler.succeeded()) {
+
+                            context.next();
+
+                        } else {
+
+                            response(context, 400, new JsonObject().put(Constant.STATUS, Constant.FAIL)
+                                    .put(Constant.ERROR, eventBusHandler.cause().getMessage()));
+
+                        }
+                    } catch (Exception exception) {
+
+                        response(context, 500, new JsonObject()
+                                .put(Constant.STATUS, Constant.FAIL)
+                                .put(Constant.ERROR, exception.getCause().getMessage()));
+
+                    }
+                });
+
+            } else {
+
+                response(context, 400, new JsonObject().put(Constant.ERROR, errors)
+                        .put(Constant.STATUS, Constant.FAIL));
+
+            }
     }
 
     private void validateCreate(RoutingContext context) {

@@ -712,7 +712,7 @@ public class DatabaseEngine extends AbstractVerticle {
 
                         smt.execute("use nms");
 
-                        smt.execute("insert into metric_values(type,metric_group,time)values(\"linux\",\"ping\",60000),(\"linux\",\"cpu\",6000),(\"linux\",\"process\",8000),(\"linux\",\"memory\",10000),(\"linux\",\"disk\",12000),(\"linux\",\"system\",15000),(\"windows\",\"ping\",60000),(\"windows\",\"cpu\",6000),(\"windows\",\"process\",8000),(\"windows\",\"memory\",10000),(\"windows\",\"disk\",12000),(\"windows\",\"system\",15000),(\"network\",\"ping\",60000),(\"network\",\"interface\",9000),(\"network\",\"system\",14000);");
+                        smt.execute("insert into metric_values(type,metric_group,time)values(\"linux\",\"ping\",60000),(\"linux\",\"cpu\",70000),(\"linux\",\"process\",90000),(\"linux\",\"memory\",100000),(\"linux\",\"disk\",120000),(\"linux\",\"system\",150000),(\"windows\",\"ping\",60000),(\"windows\",\"cpu\",70000),(\"windows\",\"process\",95000),(\"windows\",\"memory\",120000),(\"windows\",\"disk\",135000),(\"windows\",\"system\",160000),(\"network\",\"ping\",60000),(\"network\",\"interface\",90000),(\"network\",\"system\",140000);");
 
                     } catch (SQLException sqlException) {
 
@@ -748,8 +748,7 @@ public class DatabaseEngine extends AbstractVerticle {
                     ResultSet result = smt.executeQuery(query);
                     while (result.next()) {
 
-                        if (column.equals(Constant.DISCOVERY_NAME)
-                                || column.equals(Constant.CREDENTIAL_NAME)) {
+                        if (column.equals("discovery_name") || column.equals("credential_name")) {
 
                             if (result.getInt(1) == 1) {
 

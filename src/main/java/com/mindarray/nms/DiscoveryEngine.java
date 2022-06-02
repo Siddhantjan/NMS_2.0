@@ -28,9 +28,17 @@ public class DiscoveryEngine extends AbstractVerticle {
                         .onComplete(futureCompleteHandler -> {
 
                             if (futureCompleteHandler.succeeded()) {
+                                if (futureCompleteHandler.result()
+                                        .getString(Constant.STATUS).equals(Constant.SUCCESS)) {
+                                    LOG.info(futureCompleteHandler.result().encodePrettily());
 
-                                LOG.info("Discovery successful");
-                                discoveryEventBusHandler.reply(futureCompleteHandler.result());
+                                    LOG.info("Discovery successful");
+                                    discoveryEventBusHandler.reply(futureCompleteHandler.result());
+                                }else{
+                                    LOG.info("Discovery failed");
+                                    discoveryEventBusHandler.fail(-1,"discovery failed");
+
+                                }
 
                             } else {
 

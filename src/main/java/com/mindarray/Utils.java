@@ -139,69 +139,72 @@ public class Utils {
 
         } else {
 
-            Bootstrap.vertx.<JsonObject>executeBlocking(blockingHandler -> {
+                Bootstrap.vertx.<JsonObject>executeBlocking(blockingHandler -> {
 
-                NuProcess process = null;
+                    NuProcess process = null;
 
-                try {
-                    String encoder = (Base64.getEncoder()
-                            .encodeToString((credential).toString().getBytes(StandardCharsets.UTF_8)));
-
-
-                    var processBuilder = new NuProcessBuilder(Arrays.asList("./nms", encoder));
-                    var handler = new ProcessHandler();
-
-                    processBuilder.setProcessListener(handler);
-
-                    process = processBuilder.start();
-
-                    process.waitFor(6, TimeUnit.SECONDS);
+                    try {
+                        String encoder = (Base64.getEncoder()
+                                .encodeToString((credential).toString().getBytes(StandardCharsets.UTF_8)));
 
 
-                    var handlerResult = handler.output();
+                        var processBuilder = new NuProcessBuilder(Arrays.asList("./nms", encoder));
+                        var handler = new ProcessHandler();
 
-                    if (handlerResult != null) {
+                        processBuilder.setProcessListener(handler);
 
-                        blockingHandler.complete(new JsonObject(handlerResult));
+                        process = processBuilder.start();
 
-                    } else {
+                        process.waitFor(6, TimeUnit.SECONDS);
 
-                        blockingHandler.fail("request timeout");
 
-                    }
-                } catch (Exception exception) {
+                        var handlerResult = handler.output();
 
-                    promise.fail(exception.getMessage());
-                    blockingHandler.fail(exception.getMessage());
+                        if (handlerResult != null) {
 
-                } finally {
+                            blockingHandler.complete(new JsonObject(handlerResult));
 
-                    if (process != null) {
+                        } else {
 
-                        process.destroy(true);
+                            blockingHandler.fail("request timeout");
 
-                    }
-                }
+                        }
+                    } catch (Exception exception) {
 
-            }).onComplete(completeHandler -> {
+                        blockingHandler.fail(exception.getMessage());
 
-                if (completeHandler.succeeded()) {
-                    if (completeHandler.result() != null) {
+                    } finally {
 
-                        promise.complete(credential.put(Constant.RESULT, completeHandler.result()));
+                        if (process != null) {
 
-                    } else {
+                            process.destroy(true);
 
-                        promise.fail("result is fail");
-
+                        }
                     }
 
-                } else {
+                }).onComplete(completeHandler -> {
+                    try {
+                        if (completeHandler.succeeded()) {
+                            if (completeHandler.result() != null
+                                    && completeHandler.result().getString(Constant.STATUS).equals(Constant.SUCCESS)) {
+                                promise.complete(credential.put(Constant.RESULT, completeHandler.result()));
+                            } else {
+                                promise.fail(completeHandler.result().getString(Constant.ERROR));
+                            }
 
-                    promise.fail(completeHandler.cause().getMessage());
+                        } else {
 
-                }
-            });
+                            promise.fail(completeHandler.cause().getMessage());
+
+                        }
+                    } catch (Exception exception) {
+                        LOG.warn("EXCEPTION->{}", exception.getMessage());
+                    }
+
+                });
+
+
+
         }
 
         return promise.future();
