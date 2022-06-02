@@ -1,5 +1,4 @@
 # NMS_2.0
-Version 2 of NMS 
 
 network monitoring software
 
