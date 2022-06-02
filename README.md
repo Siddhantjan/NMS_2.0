@@ -10,7 +10,7 @@ network monitoring software
 - Log4j
 - MySql
 
-# Consepts which I learned while making this
+# Concepts which I learned while making this
 - Asynchronous programming
 - Socket Programming and Message Driven Programming
 - JDBC 
