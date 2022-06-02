@@ -193,14 +193,11 @@ public class Utils {
                             }
 
                         } else {
-
                             promise.fail(completeHandler.cause().getMessage());
-
                         }
                     } catch (Exception exception) {
                         LOG.warn("EXCEPTION->{}", exception.getMessage());
                     }
-
                 });
 
 
