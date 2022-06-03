@@ -112,7 +112,7 @@ public class Metric {
 
             var limit = context.queryParam("limit");
 
-            if (limit.isEmpty() || Integer.parseInt(limit.get(0)) > 10 || Integer.parseInt(limit.get(0)) < 0) {
+            if (limit.isEmpty() || Integer.parseInt(limit.get(0)) > 100 || Integer.parseInt(limit.get(0)) < 0) {
 
                 limitVal = 10;
 

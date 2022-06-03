@@ -701,7 +701,7 @@ public class DatabaseEngine extends AbstractVerticle {
 
             metricTableCheck.onComplete(futureCompleteHandler -> {
 
-                if (futureCompleteHandler.succeeded()
+                if (futureCompleteHandler.succeeded() && !futureCompleteHandler.result().isEmpty()
                         && !futureCompleteHandler.result().getJsonArray(Constant.DATA).isEmpty()) {
 
                     LOG.debug("metric_values not empty");
@@ -726,13 +726,12 @@ public class DatabaseEngine extends AbstractVerticle {
 
     private Future<JsonObject> check(String table, String column, Object value) {
 
-        var errors = new ArrayList<>();
 
         Promise<JsonObject> promise = Promise.promise();
 
         if (table == null || column == null || value == null) {
 
-            errors.add("data is null");
+            promise.fail("data is null");
 
         } else {
 
@@ -752,36 +751,41 @@ public class DatabaseEngine extends AbstractVerticle {
 
                             if (result.getInt(1) == 1) {
 
-                                errors.add(table + "." + column + " is not unique");
+                                queryHandler.fail(table + "." + column + " is not unique");
+                            }
+                            else{
+                                queryHandler.complete();
                             }
 
                         } else {
 
                             if (result.getInt(1) == 0) {
 
-                                errors.add(table + "." + column + " does not exists in table ");
+                                queryHandler.fail(table + "." + column + " does not exists in table ");
 
+                            }
+                            else{
+                                queryHandler.complete();
                             }
                         }
                     }
 
                 } catch (SQLException sqlException) {
 
-                    errors.add(sqlException.getCause().getMessage());
+                    queryHandler.fail(sqlException.getCause().getMessage());
 
                 }
 
-                queryHandler.complete();
 
             }).onComplete(completeHandler -> {
 
-                if (errors.isEmpty()) {
+                if (completeHandler.succeeded()) {
 
                     promise.complete(new JsonObject().put(Constant.STATUS, Constant.SUCCESS));
 
                 } else {
 
-                    promise.fail(String.valueOf(errors));
+                    promise.fail(completeHandler.cause().getMessage());
 
                 }
 
@@ -793,8 +797,6 @@ public class DatabaseEngine extends AbstractVerticle {
     }
 
     private Future<JsonObject> executeQuery(String query) {
-
-        var errors = new ArrayList<>();
 
         Promise<JsonObject> promise = Promise.promise();
 
@@ -811,22 +813,22 @@ public class DatabaseEngine extends AbstractVerticle {
 
                 result.put(Constant.RESULT, res);
 
+                queryHandler.complete(result);
+
             } catch (SQLException sqlException) {
 
-                errors.add(sqlException);
+                queryHandler.fail(sqlException);
             }
-
-            queryHandler.complete(result);
 
         }).onComplete(completeHandler -> {
 
-            if (errors.isEmpty()) {
+            if (completeHandler.succeeded()) {
 
                 promise.complete(completeHandler.result());
 
             } else {
 
-                promise.fail(String.valueOf(errors));
+                promise.fail(completeHandler.cause().getMessage());
 
             }
         });
@@ -837,7 +839,6 @@ public class DatabaseEngine extends AbstractVerticle {
 
     private Future<JsonObject> getQuery(String query) {
 
-        var errors = new ArrayList<>();
         Promise<JsonObject> promise = Promise.promise();
 
         vertx.<JsonObject>executeBlocking(queryHandler -> {
@@ -872,25 +873,30 @@ public class DatabaseEngine extends AbstractVerticle {
                     data.add(result);
 
                 }
+                resultData.put(Constant.DATA, data);
+
+                queryHandler.complete(resultData);
 
             } catch (SQLException sqlException) {
 
-                errors.add(sqlException);
+             queryHandler.fail(sqlException);
             }
 
-            resultData.put(Constant.DATA, data);
 
-            queryHandler.complete(resultData);
 
         }).onComplete(completeHandler -> {
 
-            if (errors.isEmpty()) {
-
-                promise.complete(completeHandler.result());
+            if (completeHandler.succeeded()) {
+                if (completeHandler.result() != null) {
+                    promise.complete(completeHandler.result());
+                }
+                else{
+                    promise.fail("data not found");
+                }
 
             } else {
 
-                promise.fail(String.valueOf(errors));
+                promise.fail(completeHandler.cause().getMessage());
 
             }
         });

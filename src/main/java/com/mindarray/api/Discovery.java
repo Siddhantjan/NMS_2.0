@@ -44,7 +44,7 @@ public class Discovery {
     private void inputValidate(RoutingContext context) {
 
         LOG.info("discovery Input validate fn() called");
-        var contextBody = new JsonObject();
+
 
         try {
 
@@ -75,29 +75,23 @@ public class Discovery {
 
                                     try {
 
+                                        var contextData=context.getBodyAsJson();
                                         var validateInputArray = Utils.inputValidation();
 
-                                        if (context.getBodyAsJson().containsKey(Constant.TYPE)
-                                                && ((context.getBodyAsJson().getString(Constant.TYPE).equals("linux"))
-                                                || (context.getBodyAsJson().getString(Constant.TYPE).equals("windows"))
-                                                || (context.getBodyAsJson().getString(Constant.TYPE).equals("network")))) {
+                                        if (contextData.containsKey(Constant.TYPE)
+                                                && ((contextData.getString(Constant.TYPE).equals("linux"))
+                                                || (contextData.getString(Constant.TYPE).equals("windows"))
+                                                || (contextData.getString(Constant.TYPE).equals("network")))) {
 
-                                            var protocolValue = context.getBodyAsJson().getString(Constant.TYPE);
+                                            var type = contextData.getString(Constant.TYPE);
 
-                                            validateInputArray.get(protocolValue).forEach(keyElement -> {
+                                            var keys = contextData.fieldNames();
 
-                                                var key = keyElement.toString();
+                                            keys.removeIf(key -> !validateInputArray.get(type).contains(key));
 
-                                                if (context.getBodyAsJson().containsKey(key)) {
+                                            contextData.remove(Constant.TYPE);
 
-                                                    contextBody.put(key, context.getBodyAsJson().getValue(key));
-
-                                                }
-                                            });
-
-                                            contextBody.remove(Constant.TYPE);
-
-                                            context.setBody(contextBody.put(Constant.DISCOVERY_ID,
+                                            context.setBody(contextData.put(Constant.DISCOVERY_ID,
                                                             Integer.parseInt(context.pathParam(Constant.ID)))
                                                     .toBuffer());
 

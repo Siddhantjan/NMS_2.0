@@ -168,6 +168,7 @@ public class MetricScheduler extends AbstractVerticle {
         Bootstrap.vertx.eventBus().<JsonObject>request(Constant.DATABASE_EVENTBUS_ADDRESS,
                 new JsonObject().put(Constant.QUERY, getQuery)
                 .put(Constant.METHOD_TYPE, Constant.GET_DATA), eventBusHandler -> {
+
             try {
 
                 if (eventBusHandler.succeeded() && !eventBusHandler.result().body().isEmpty()) {

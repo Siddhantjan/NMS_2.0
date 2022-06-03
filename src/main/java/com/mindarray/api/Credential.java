@@ -39,7 +39,7 @@ public class Credential {
 
     private void inputValidate(RoutingContext context) {
 
-        var contextBody = new JsonObject();
+
         LOG.info("remove unwanted parameters fn() called");
 
         try {
@@ -65,33 +65,24 @@ public class Credential {
                                         .put(Constant.STATUS, Constant.FAIL));
 
                             } else {
+                                var contextData = context.getBodyAsJson();
 
                                 var validateInputArray = Utils.inputValidation();
 
-                                if (context.getBodyAsJson().containsKey(Constant.PROTOCOL)
-                                        && ((context.getBodyAsJson().getString(Constant.PROTOCOL)
+                                if (contextData.containsKey(Constant.PROTOCOL)
+                                        && ((contextData.getString(Constant.PROTOCOL)
                                         .equals(Constant.SNMP))
-                                        || (context.getBodyAsJson().getString(Constant.PROTOCOL)
+                                        || (contextData.getString(Constant.PROTOCOL)
                                         .equals(Constant.POWERSHELL))
-                                        || (context.getBodyAsJson().getString(Constant.PROTOCOL)
+                                        || (contextData.getString(Constant.PROTOCOL)
                                         .equals(Constant.SSH)))) {
 
-                                    var protocolValue = context.getBodyAsJson().getString(Constant.PROTOCOL);
+                                    var protocolValue = contextData.getString(Constant.PROTOCOL);
 
-                                    validateInputArray.get(protocolValue).forEach(keyElement -> {
-
-                                        var key = keyElement.toString();
-
-                                        if (context.getBodyAsJson().containsKey(key)) {
-                                            contextBody.put(key,
-                                                    context.getBodyAsJson().getValue(key));
-
-                                        }
-
-                                    });
-
-                                    contextBody.remove(Constant.PROTOCOL);
-                                    context.setBody(contextBody.put(Constant.CREDENTIAL_ID,
+                                    var keys = contextData.fieldNames();
+                                    keys.removeIf(key -> !validateInputArray.get(protocolValue).contains(key));
+                                    contextData.remove(Constant.PROTOCOL);
+                                    context.setBody(contextData.put(Constant.CREDENTIAL_ID,
                                             Integer.parseInt(context.pathParam(Constant.ID))).toBuffer());
                                     context.next();
 
@@ -724,6 +715,7 @@ public class Credential {
                 try {
 
                     if (eventBusHandler.succeeded()) {
+
 
                         context.next();
 

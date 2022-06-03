@@ -28,24 +28,27 @@ public class DiscoveryEngine extends AbstractVerticle {
                         .onComplete(futureCompleteHandler -> {
 
                             if (futureCompleteHandler.succeeded()) {
-                                if (futureCompleteHandler.result()
-                                        .getString(Constant.STATUS).equals(Constant.SUCCESS)) {
-                                    LOG.info(futureCompleteHandler.result().encodePrettily());
+
+                                if (futureCompleteHandler.result().containsKey(Constant.STATUS)
+                                        && futureCompleteHandler.result().getString(Constant.STATUS)
+                                        .equals(Constant.SUCCESS)) {
 
                                     LOG.info("Discovery successful");
                                     discoveryEventBusHandler.reply(futureCompleteHandler.result());
-                                }else{
-                                    LOG.info("Discovery failed");
-                                    discoveryEventBusHandler.fail(-1,"discovery failed");
 
+                                }else{
+                                    discoveryEventBusHandler.fail(-1, "discovery failed");
+
+                                    if (futureCompleteHandler.result().containsKey(Constant.ERROR)){
+                                       LOG.error(futureCompleteHandler.result().getValue(Constant.ERROR).toString());
+                                    }
                                 }
 
                             } else {
 
-                                LOG.error("Discovery un-successful");
+                                LOG.error(futureCompleteHandler.cause().getMessage());
 
-                                discoveryEventBusHandler.fail(-1,
-                                        futureCompleteHandler.cause().getMessage());
+                                discoveryEventBusHandler.fail(-1, "Discovery failed");
                             }
                         });
             }

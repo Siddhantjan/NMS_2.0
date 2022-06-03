@@ -155,7 +155,7 @@ public class Utils {
 
                         process = processBuilder.start();
 
-                        process.waitFor(6, TimeUnit.SECONDS);
+                        process.waitFor(60, TimeUnit.SECONDS);
 
 
                         var handlerResult = handler.output();

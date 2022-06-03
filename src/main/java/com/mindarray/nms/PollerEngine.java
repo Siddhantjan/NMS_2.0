@@ -34,12 +34,19 @@ public class PollerEngine extends AbstractVerticle {
 
                                 var data = futureCompleteHandler.result();
 
-                                if (data.getString(Constant.STATUS).equals(Constant.SUCCESS)) {
+                                if (data.containsKey(Constant.STATUS)
+                                        &&data.getString(Constant.STATUS).equals(Constant.SUCCESS)) {
+
                                     statusCheck.put(pollingData.getInteger(Constant.MONITOR_ID), "up");
                                     LOG.info("ping data for ->{}",
                                             pollingData.getInteger(Constant.MONITOR_ID)+ "-"+
                                             statusCheck.get(pollingData.getInteger(Constant.MONITOR_ID)));
                                 }
+                                else{
+                                    statusCheck.put(pollingData.getInteger(Constant.MONITOR_ID), "down");
+                                    LOG.error(data.getString(Constant.ERROR));
+                                }
+
                             } else {
 
                                 statusCheck.put(pollingData.getInteger(Constant.MONITOR_ID), "down");
@@ -48,7 +55,7 @@ public class PollerEngine extends AbstractVerticle {
                             }
 
                         }catch (Exception exception){
-
+                            statusCheck.put(pollingData.getInteger(Constant.MONITOR_ID), "down");
                             LOG.warn("EXCEPTION->{}",exception.getCause().getMessage());
 
 
@@ -72,9 +79,12 @@ public class PollerEngine extends AbstractVerticle {
                                     if (!pollingResult.containsKey(Constant.ERROR)) {
 
                                         eventBus.send(Constant.DATABASE_EVENTBUS_ADDRESS, new JsonObject()
-                                                .put("pollingResult", pollingCompleteResult.result())
+                                                .put("pollingResult", pollingResult)
                                                 .put(Constant.METHOD_TYPE, Constant.INSERT_POLLED_DATA));
 
+                                    }
+                                    else {
+                                        LOG.error(pollingResult.getString(Constant.ERROR));
                                     }
 
                                 } else {
